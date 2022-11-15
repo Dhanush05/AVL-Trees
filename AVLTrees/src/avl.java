@@ -1,30 +1,32 @@
 /*
 Author: Dhanush Pakanati
 */
+
 import java.io.*;
 import java.util.ArrayList;
-public class avltree {
-    //1. Write class to initialize node definition
+public class avl {
+    //write class to initialize node definition
     public static class Node{
         //node with left and right child
+        int key;
         Node leftNode;
         Node rightNode;
-        int key;
-        //each node has height parameter - Distance to leaf
         int height;
         Node(int val){
             this.key  = val;
         }
     }
-    //we should always have access to root - even after balancing. 
-    //so having global variable accessible only in this class
+    //we should always have access to root - even after rebalance. 
+    //so having global variable accessible only in this file
     private static Node root;
+    public Node getRoot() {
+        return root;
+    }
     
-    //2. write function for insert
+    //write function for insert
     public static void insert(int key){
         root = insert(key, root);
     }
-
     public static Node insert(int key, Node node){
         if(node == null) return new Node(key);
         if(node.key > key){
@@ -34,23 +36,23 @@ public class avltree {
             node.rightNode = insert(key, node.rightNode);
         }
         else{
-            System.out.println("Duplicate key - throw exception - Not inserted - Ignored");
+            System.out.println("Duplicate key - throw exception");
         }
-        return balanceTree(node);
+        return rebalance(node);
 
     }
-    //3. write function for rebalance
+    //write funciotn for rebalance
     //need not be accessible to other files - declaring private
-    //will return the root node reference
-    private static Node balanceTree(Node node){
+    //change name from rebalance to something
+    //write function to choose rotation
+    private static Node rebalance(Node node){
         //first get the height of that node
         calculateHeight(node);
         //get the balance factor of that node
         int bf = balanceFactor(node);
-        //write functions to choose rotation - LL/LR/RR/RL
-        if(bf < -1){
+        //////////////here balance factor formula is reverse change it later
+        if(bf > 1){
             //right subtree tree height is more 
-            //check how many rotations are needed
             if(getHeight(node.rightNode.rightNode)>getHeight(node.rightNode.leftNode)){
                 node = rLeft(node);
             }
@@ -59,9 +61,7 @@ public class avltree {
                 node = rLeft(node);
             }
         }
-        else if (bf > 1){
-            //left subtree heigh is more
-            //check R/RL rotation 
+        else if (bf < -1){
             if(getHeight(node.leftNode.leftNode)>getHeight(node.leftNode.rightNode)){
                 node = rRight(node);
             }
@@ -73,7 +73,7 @@ public class avltree {
         }
         return node;
     }
-    //4. write function for right rotation(RR)
+    //write function for right rotation(RR)
     private static Node rRight(Node node){
         Node A = node.leftNode;
         Node C = A.rightNode;
@@ -84,7 +84,7 @@ public class avltree {
         return A;
 
     } 
-    //5. write function for left rotation(LL)
+    ////write function for left rotation(LL)
     private static  Node rLeft(Node node){
         Node A = node.rightNode;
         Node C  = A.leftNode;
@@ -96,7 +96,7 @@ public class avltree {
 
     }
 
-    //6. get height
+    //get height
     private static void calculateHeight(Node node){
         node.height = Math.max(getHeight(node.leftNode),getHeight(node.rightNode))+1;
     }
@@ -104,31 +104,25 @@ public class avltree {
         if(node == null) return -1;
         else return node.height;
     }
-    //7. calculate the balance factor of that node
+    //calculate the balance factor of that node
     private static int balanceFactor(Node node){
         if(node == null) return 0;
-        else return getHeight(node.leftNode) - getHeight(node.rightNode);
+        else return getHeight(node.rightNode) - getHeight(node.leftNode);
     }
     
-    //8. write function to search node
+    //write function to search node
     public static Node find(int val){
         //System.out.println("Root is "+root.key);
         Node curr = root;
-        //boolean found  =false;
+        boolean found  =false;
         while(curr!=null){
             if(curr.key == val){
-                //found = true;
+                found = true;
                 break;
             }
-            if(curr.key<val){
-                curr = curr.rightNode;
-            }
-            else{
-                curr = curr.leftNode;
-            }
-            
+            ///change here code
+            curr = curr.key < val ? curr.rightNode:curr.leftNode;
         }
-        //code below to print output in terminal - ignore - output visible in output.txt
         // if(found){
         //     System.out.println("Found: "+curr.key);
         // }
@@ -137,7 +131,7 @@ public class avltree {
         // }
         return curr;
     }
-    //9. write function to delete
+    //write function to delete
     public static void delete(int key){
         root = delete(root,key);
     }
@@ -146,22 +140,15 @@ public class avltree {
             return node;
         }
         else if(node.key > key){
-            //recursively find the node to be deleted in left subtree
             node.leftNode = delete(node.leftNode,key);
         }
         else if(node.key < key){
-            //recursively find the node to be deleted in right subtree.
             node.rightNode = delete(node.rightNode, key);
         }
         else{
             if(node.leftNode == null||node.rightNode == null){
                 //check code here later
-                if(node.leftNode == null){
-                    node = node.rightNode;
-                }
-                else{
-                    node = node.leftNode;
-                }
+                node = (node.leftNode == null)? node.rightNode:node.leftNode;
             }
             else{
                 Node leftmost = leftMostChild(node.rightNode);
@@ -170,11 +157,10 @@ public class avltree {
             }
         }
         if(node!=null){
-            node = balanceTree(node);
+            node = rebalance(node);
         }
         return node;
     }
-    //10. Write function to find left most child
     private static Node leftMostChild(Node node){
         Node curr = node;
         while(curr.leftNode!=null){
@@ -182,7 +168,6 @@ public class avltree {
         }
         return curr;
     }
-    //11. write function to search in a range
     private static void search(int k1, int k2, ArrayList<Integer> list){
         searchRange(root, k1, k2,list);
         //System.out.println("List size: "+list.size());
@@ -206,26 +191,26 @@ public class avltree {
     }
     
     public static void main(String[] args) throws IOException{
-        //get file name from command line
+        //System.out.println("sdfsdf");
         String inputfilename  = args[0];
-        //use file reader/buffer reader to read file
         File file = new File(inputfilename+".txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
-        File newfile = new File("output_file.txt");
+        File newfile = new File("output.txt");
         newfile.createNewFile();
-        //use file writer/buffer writer to write into file
         BufferedWriter bw = new BufferedWriter(new FileWriter(newfile));
         String input;
         while((input = br.readLine()) !=null){
-            //direct the input lines to respective functions
             if(input.startsWith("Initialize()")){
                 initialize();
             }
             else if(input.startsWith("Insert")){
-                insert(Integer.parseInt(input.substring(input.indexOf("(")+1,input.indexOf(")"))));
+                int num = Integer.parseInt(input.substring(input.indexOf("(")+1,input.indexOf(")")));
+                insert(num);
+                // String answer = st.substring(st.indexOf("(")+1, st.indexOf(")"));
             }
             else if(input.startsWith("Delete")){
-                delete(Integer.parseInt(input.substring(input.indexOf("(")+1,input.indexOf(")"))));
+                int num = Integer.parseInt(input.substring(input.indexOf("(")+1,input.indexOf(")")));
+                delete(num);
             }
             else if(input.startsWith("Search")){
                 String nums = input.substring(input.indexOf("(")+1,input.indexOf(")"));
@@ -257,9 +242,15 @@ public class avltree {
                     bw.write(result.substring(0,result.length()-2));
                     bw.write("\n");
                 }
+                
+
             }
+            else if(input.startsWith("Delete")){
+                int num = Integer.parseInt(input.substring(input.indexOf("(")+1,input.indexOf(")")));
+                delete(num);
+            }
+
         }
-        //close the buffer reader adn writer to prevent resource leaking
         br.close();
         bw.close();
         
