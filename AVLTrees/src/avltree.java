@@ -1,32 +1,30 @@
 /*
 Author: Dhanush Pakanati
 */
-
 import java.io.*;
 import java.util.ArrayList;
 public class avltree {
     //write class to initialize node definition
     public static class Node{
         //node with left and right child
-        int key;
         Node leftNode;
         Node rightNode;
+        int key;
+        //each node has height parameter - Distance to leaf
         int height;
         Node(int val){
             this.key  = val;
         }
     }
-    //we should always have access to root - even after rebalance. 
-    //so having global variable accessible only in this file
+    //we should always have access to root - even after balancing. 
+    //so having global variable accessible only in this class
     private static Node root;
-    public Node getRoot() {
-        return root;
-    }
     
     //write function for insert
     public static void insert(int key){
         root = insert(key, root);
     }
+
     public static Node insert(int key, Node node){
         if(node == null) return new Node(key);
         if(node.key > key){
@@ -36,22 +34,22 @@ public class avltree {
             node.rightNode = insert(key, node.rightNode);
         }
         else{
-            System.out.println("Duplicate key - throw exception");
+            System.out.println("Duplicate key - throw exception - Not inserted - Ignored");
         }
-        return rebalance(node);
+        return balanceTree(node);
 
     }
-    //write funciotn for rebalance
+    //write function for rebalance
     //need not be accessible to other files - declaring private
-    //change name from rebalance to something
-    //write function to choose rotation
-    private static Node rebalance(Node node){
+    //will return the root node reference
+    private static Node balanceTree(Node node){
         //first get the height of that node
         calculateHeight(node);
         //get the balance factor of that node
         int bf = balanceFactor(node);
+        //write functions to choose rotation
         //////////////here balance factor formula is reverse change it later
-        if(bf > 1){
+        if(bf < -1){
             //right subtree tree height is more 
             if(getHeight(node.rightNode.rightNode)>getHeight(node.rightNode.leftNode)){
                 node = rLeft(node);
@@ -61,7 +59,7 @@ public class avltree {
                 node = rLeft(node);
             }
         }
-        else if (bf < -1){
+        else if (bf > 1){
             if(getHeight(node.leftNode.leftNode)>getHeight(node.leftNode.rightNode)){
                 node = rRight(node);
             }
@@ -107,21 +105,26 @@ public class avltree {
     //calculate the balance factor of that node
     private static int balanceFactor(Node node){
         if(node == null) return 0;
-        else return getHeight(node.rightNode) - getHeight(node.leftNode);
+        else return getHeight(node.leftNode) - getHeight(node.rightNode);
     }
     
     //write function to search node
     public static Node find(int val){
         //System.out.println("Root is "+root.key);
         Node curr = root;
-        boolean found  =false;
+        //boolean found  =false;
         while(curr!=null){
             if(curr.key == val){
-                found = true;
+                //found = true;
                 break;
             }
-            ///change here code
-            curr = curr.key < val ? curr.rightNode:curr.leftNode;
+            if(curr.key<val){
+                curr = curr.rightNode;
+            }
+            else{
+                curr = curr.leftNode;
+            }
+            
         }
         // if(found){
         //     System.out.println("Found: "+curr.key);
@@ -157,7 +160,7 @@ public class avltree {
             }
         }
         if(node!=null){
-            node = rebalance(node);
+            node = balanceTree(node);
         }
         return node;
     }
@@ -195,7 +198,7 @@ public class avltree {
         String inputfilename  = args[0];
         File file = new File(inputfilename+".txt");
         BufferedReader br = new BufferedReader(new FileReader(file));
-        File newfile = new File("output.txt");
+        File newfile = new File("output_file.txt");
         newfile.createNewFile();
         BufferedWriter bw = new BufferedWriter(new FileWriter(newfile));
         String input;
@@ -242,14 +245,11 @@ public class avltree {
                     bw.write(result.substring(0,result.length()-2));
                     bw.write("\n");
                 }
-                
-
             }
             else if(input.startsWith("Delete")){
                 int num = Integer.parseInt(input.substring(input.indexOf("(")+1,input.indexOf(")")));
                 delete(num);
             }
-
         }
         br.close();
         bw.close();
